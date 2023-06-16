@@ -75,6 +75,15 @@ interface ParseComplexResultOperator {
 
 type ParseComplexResult = ParseComplexResultNumber | ParseComplexResultOperator;
 
+function isMultiplication(token:Token){
+	if(token.type === TokenType.OpenBracket) return true;
+	if(token.type === TokenType.OpenParen) return true;
+	if(token.type === TokenType.OpenBrace) return true;
+	if(token.type === TokenType.Constant) return true;
+	if(token.type === TokenType.Number) return true;
+	return false
+}
+
 export default class Parser {
 	tokens: Token[];
 	constructor(source: string) {
@@ -85,6 +94,9 @@ export default class Parser {
 	}
 	protected eat() {
 		return this.tokens.shift();
+	}
+	protected next(){
+		return this.tokens[1];
 	}
 	protected parseConstant(): ParseComplexResultNumber {
 		const constant = this.eat();
@@ -132,11 +144,19 @@ export default class Parser {
 		}
 		throw new ParseComplexError('Invalid value');
 	}
+	protected powerValue(): ParseComplexResult {
+		const left = this.power();
+		if(this.at() && isMultiplication(this.at())){
+			const right = this.multiplication();
+			return { type: 'operator', value: '*', left, right };
+		}
+		return left;
+	}
 	protected power(): ParseComplexResult {
 		const left = this.parseValue();
 		if (this.at() && this.at().type === TokenType.Operator && this.at().value === '^') {
 			this.eat();
-			const right = this.parseValue();
+			const right = this.powerValue();
 			return { type: 'operator', value: '^', left, right };
 		}
 		return left;
@@ -147,6 +167,10 @@ export default class Parser {
 			const operator = this.eat() as Token;
 			const right = this.power();
 			return { type: 'operator', value: operator.value, left, right };
+		}
+		if(this.at() && isMultiplication(this.at())){
+			const right = this.multiplication();
+			return { type: 'operator', value: '*', left, right };
 		}
 		return left;
 	}

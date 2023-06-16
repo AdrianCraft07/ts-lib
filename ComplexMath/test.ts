@@ -1,5 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.190.0/testing/asserts.ts';
-import ComplexNumber, { absolute, divide, equals, power, square, add, subtract, multiply, Parser } from '../ComplexMath.ts';
+import ComplexNumber, { absolute, divide, equals, power, square, add, subtract, multiply, parseComplex } from '../ComplexMath.ts';
 
 const five = ComplexNumber.from(5);
 
@@ -52,8 +52,9 @@ Deno.test('toString', () => {
 	assertEquals(ComplexNumber.from(10, -4).toString(), '10-4i');
 });
 
-Deno.test('Parser', () => {
-	assertEquals(Parser.compile(new Parser('1+i').parse()), ComplexNumber.from(1, 1));
-	assertEquals(Parser.compile(new Parser('e^(πi)').parse()), ComplexNumber.from(-1));
-	assertEquals(Parser.compile(new Parser('(-1)^(1/2)').parse()), ComplexNumber.from(0, 1));
+Deno.test('parseComplex', () => {
+	assertEquals(parseComplex('e^(iπ)+1'), ComplexNumber.from(0));
+	assertEquals(parseComplex('e^iπ+1'), ComplexNumber.from(0));
+	assertEquals(parseComplex('(-1)^[1/2]'), ComplexNumber.from(0, 1));
+	assertEquals(parseComplex('{-1}^1/2'), ComplexNumber.from(-1/2));
 });
