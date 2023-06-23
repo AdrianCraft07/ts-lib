@@ -1,5 +1,6 @@
 import { FOREGROUND } from '../Colors.ts';
 import Inspecteable from '../Inspectable.class.ts';
+import { LikeNumber } from "./types.ts";
 const PRECISION = 14;
 const MIDDLE_PRECISION = Math.round(PRECISION/2);
 const EPSILON = Number(`1e-${PRECISION+1}`);
@@ -11,8 +12,7 @@ function roundDecimals(value: number, decimals = 0) {
 	return round / multiplier;
 }
 
-function ConvertToFraction(number:number):string {
-	const tolerance = 1.0E-6;
+function ConvertToFraction(number:number, tolerance = 1e-6):string {
 	let numerator = 1;
 	let denominator = 1;
 
@@ -81,6 +81,13 @@ export default class ComplexNumber extends Inspecteable {
 
 		return parts.join('') || '0';
 	}
+	[Symbol.hasInstance](instance: unknown) {
+		if(typeof instance !== 'object') return false;
+		if(instance === null) return false;
+		if(!('real' in instance)) return false;
+		if(!('imaginary' in instance)) return false;
+		return true;
+	}
 	static NaN: ComplexNumber;
 	static Infinity: ComplexNumber;
 	static NegativeInfinity: ComplexNumber;
@@ -91,7 +98,11 @@ export default class ComplexNumber extends Inspecteable {
 	static Pi: ComplexNumber;
 	static I: ComplexNumber;
 	static One_Two: ComplexNumber;
-	static from(value = 0, imaginary = 0) {
+
+	static from(value: LikeNumber, imaginary?: number): ComplexNumber
+	static from(value: ComplexNumber): ComplexNumber
+	static from(value: LikeNumber, imaginary = 0) {
+		if(value instanceof ComplexNumber) return ComplexNumber.from(value.real, value.imaginary);
 		if(typeof value !== 'number') throw new Error('Invalid value')
 		if(typeof imaginary !== 'number') throw new Error('Invalid imaginary')
 

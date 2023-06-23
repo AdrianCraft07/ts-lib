@@ -1,6 +1,5 @@
 import ComplexNumber from './ComplexNumber.class.ts';
-
-type LikeNumber = number | ComplexNumber;
+import { LikeNumber } from './types.ts';
 
 function roundDecimals(value: number, decimals = 0) {
 	const multiplier = Math.pow(10, decimals);
@@ -14,8 +13,8 @@ export function isLikeNumber(value: unknown): value is LikeNumber {
 
 //#region Arithmetic functions
 export function absolute(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(typeof x === 'number') return ComplexNumber.from(Math.abs(x))
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return ComplexNumber.from(Math.abs(x));
 	// Absolute value is the distance from the origin (0,0)
 	// c^2 = a^2 + b^2
 	// c = sqrt(a^2 + b^2)
@@ -24,77 +23,79 @@ export function absolute(x: LikeNumber): ComplexNumber {
 	return ComplexNumber.from(c);
 }
 export function add(x: LikeNumber, y: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
-	if(typeof x === 'number')
-		if(typeof y === 'number') return ComplexNumber.from(x + y);
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
+	if (typeof x === 'number')
+		if (typeof y === 'number') return ComplexNumber.from(x + y);
 		else return ComplexNumber.from(x + y.real, y.imaginary);
-	else // x instanceof ComplexNumber
-	  if(typeof y === 'number') return ComplexNumber.from(x.real + y, x.imaginary);
-	  else return ComplexNumber.from(x.real + y.real, x.imaginary + y.imaginary);
+	// x instanceof ComplexNumber
+	else if (typeof y === 'number')
+		return ComplexNumber.from(x.real + y, x.imaginary);
+	else return ComplexNumber.from(x.real + y.real, x.imaginary + y.imaginary);
 }
 export function subtract(x: LikeNumber, y: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
-	if(typeof x === 'number')
-		if(typeof y === 'number') return ComplexNumber.from(x - y);
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
+	if (typeof x === 'number')
+		if (typeof y === 'number') return ComplexNumber.from(x - y);
 		else return ComplexNumber.from(x - y.real, -y.imaginary);
-	else // x instanceof ComplexNumber
-	  if(typeof y === 'number') return ComplexNumber.from(x.real - y, x.imaginary);
-	  else return ComplexNumber.from(x.real - y.real, x.imaginary - y.imaginary);
+	// x instanceof ComplexNumber
+	else if (typeof y === 'number')
+		return ComplexNumber.from(x.real - y, x.imaginary);
+	else return ComplexNumber.from(x.real - y.real, x.imaginary - y.imaginary);
 }
 export function multiply(x: LikeNumber, y: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
 
-	if(typeof x === 'number')
-		if(typeof y === 'number') return ComplexNumber.from(x * y);
+	if (typeof x === 'number')
+		if (typeof y === 'number') return ComplexNumber.from(x * y);
 		else return ComplexNumber.from(x * y.real, x * y.imaginary);
-	else // x instanceof ComplexNumber
-	  if(typeof y === 'number') return ComplexNumber.from(x.real * y, x.imaginary * y);
-		else return ComplexNumber.from(x.real * y.real - x.imaginary * y.imaginary, x.real * y.imaginary + x.imaginary * y.real);
+	// x instanceof ComplexNumber
+	else if (typeof y === 'number')
+		return ComplexNumber.from(x.real * y, x.imaginary * y);
+	else
+		return ComplexNumber.from(
+			x.real * y.real - x.imaginary * y.imaginary,
+			x.real * y.imaginary + x.imaginary * y.real
+		);
 }
 export function divide(x: LikeNumber, y: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
+	if (typeof x === 'number') x = ComplexNumber.from(x);
+	if (typeof y === 'number') y = ComplexNumber.from(y);
 
-	if(typeof x === 'number')
-		if(typeof y === 'number') return ComplexNumber.from(x / y);
-		else return ComplexNumber.from(x / y.real, x / y.imaginary);
-	else // x instanceof ComplexNumber
-		if(typeof y === 'number') return ComplexNumber.from(x.real / y, x.imaginary / y);
-		else {
-			// Denominator: c^2 + d^2
-			const denominator = y.real * y.real + y.imaginary * y.imaginary;
+	// Denominator: c^2 + d^2
+	const denominator = y.real * y.real + y.imaginary * y.imaginary;
 
-			// Real part: (a * c + b * d) / (c^2 + d^2)
-			const real = (x.real * y.real + x.imaginary * y.imaginary) / denominator;
+	// Real part: (a * c + b * d) / (c^2 + d^2)
+	const real = (x.real * y.real + x.imaginary * y.imaginary) / denominator;
 
-			// Imaginary part: (b * c - a * d) / (c^2 + d^2)
-			const imaginary = (x.imaginary * y.real - x.real * y.imaginary) / denominator;
+	// Imaginary part: (b * c - a * d) / (c^2 + d^2)
+	const imaginary = (x.imaginary * y.real - x.real * y.imaginary) / denominator;
 
-			return ComplexNumber.from(real, imaginary);
-		}
+	return ComplexNumber.from(real, imaginary);
 }
 export function modulo(x: LikeNumber, y: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
 
 	const quotient = divide(x, y);
 	const quotientFloor = floor(quotient);
 	return subtract(x, multiply(quotientFloor, y));
 }
 export function exp(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(typeof x === 'number') return ComplexNumber.from(Math.exp(x))
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return ComplexNumber.from(Math.exp(x));
 
 	const real = Math.exp(x.real) * Math.cos(x.imaginary);
 	const imaginary = Math.exp(x.real) * Math.sin(x.imaginary);
 	return ComplexNumber.from(real, imaginary);
 }
 export function log(x: LikeNumber) {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(typeof x === 'number') return ComplexNumber.from(Math.log(x))
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return ComplexNumber.from(Math.log(x));
 
 	// Real: ln(|x|)
 	const real = Math.log(Math.sqrt(x.real * x.real + x.imaginary * x.imaginary));
@@ -103,15 +104,15 @@ export function log(x: LikeNumber) {
 	return ComplexNumber.from(real, imaginary);
 }
 export function power(x: LikeNumber, y: LikeNumber = 2): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
 
 	const logX = log(x);
 	const product = multiply(logX, y);
 	return exp(product);
 }
-export function square(x: LikeNumber, y: LikeNumber = (2)): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
+export function square(x: LikeNumber, y: LikeNumber = 2): ComplexNumber {
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 
 	return power(x, divide(ComplexNumber.from(1), y));
 }
@@ -119,9 +120,9 @@ export function square(x: LikeNumber, y: LikeNumber = (2)): ComplexNumber {
 
 //#region Trigonometric functions
 export function sin(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 
-	if(typeof x === 'number') return ComplexNumber.from(Math.sin(x))
+	if (typeof x === 'number') return ComplexNumber.from(Math.sin(x));
 
 	// Real part: sin(a) * cosh(b)
 	const real = Math.sin(x.real) * Math.cosh(x.imaginary);
@@ -132,9 +133,9 @@ export function sin(x: LikeNumber): ComplexNumber {
 	return ComplexNumber.from(real, imaginary);
 }
 export function cos(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 
-	if(typeof x === 'number') return ComplexNumber.from(Math.cos(x))
+	if (typeof x === 'number') return ComplexNumber.from(Math.cos(x));
 
 	// Real part: cos(a) * cosh(b)
 	const real = Math.cos(x.real) * Math.cosh(x.imaginary);
@@ -145,9 +146,9 @@ export function cos(x: LikeNumber): ComplexNumber {
 	return ComplexNumber.from(real, imaginary);
 }
 export function tan(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 
-	if(typeof x === 'number') return ComplexNumber.from(Math.tan(x))
+	if (typeof x === 'number') return ComplexNumber.from(Math.tan(x));
 
 	// Calculate sin(x) and cos(x)
 	const sinX = sin(x);
@@ -157,7 +158,7 @@ export function tan(x: LikeNumber): ComplexNumber {
 	return divide(sinX, cosX);
 }
 export function cot(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 
 	// Calculate cos(x) and sin(x)
 	const cosX = cos(x);
@@ -167,8 +168,8 @@ export function cot(x: LikeNumber): ComplexNumber {
 	return divide(cosX, sinX);
 }
 export function sec(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(typeof x === 'number') return ComplexNumber.from(1 / Math.cos(x))
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return ComplexNumber.from(1 / Math.cos(x));
 
 	// Calculate cos(x)
 	const cosX = cos(x);
@@ -177,8 +178,8 @@ export function sec(x: LikeNumber): ComplexNumber {
 	return divide(1, cosX);
 }
 export function csc(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(typeof x === 'number') return ComplexNumber.from(1 / Math.sin(x))
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return ComplexNumber.from(1 / Math.sin(x));
 
 	// Calculate sin(x)
 	const sinX = sin(x);
@@ -191,9 +192,12 @@ export function csc(x: LikeNumber): ComplexNumber {
 //#region Program functions
 export function equals(x: LikeNumber, y: LikeNumber): boolean {
 	if (typeof x === 'number' && typeof y === 'number') return x === y;
-	if (typeof x === 'number' && y instanceof ComplexNumber) return x === y.real && y.imaginary === 0;
-	if (x instanceof ComplexNumber && typeof y === 'number') return x.real === y && x.imaginary === 0;
-	if (x instanceof ComplexNumber && y instanceof ComplexNumber) return x.real === y.real && x.imaginary === y.imaginary;
+	if (typeof x === 'number' && y instanceof ComplexNumber)
+		return x === y.real && y.imaginary === 0;
+	if (x instanceof ComplexNumber && typeof y === 'number')
+		return x.real === y && x.imaginary === 0;
+	if (x instanceof ComplexNumber && y instanceof ComplexNumber)
+		return x.real === y.real && x.imaginary === y.imaginary;
 	return false;
 }
 export function negative(x: LikeNumber): ComplexNumber {
@@ -201,24 +205,29 @@ export function negative(x: LikeNumber): ComplexNumber {
 	return ComplexNumber.from(-x.real, -x.imaginary);
 }
 export function round(x: LikeNumber, y: LikeNumber = 0): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(!isLikeNumber(y)) throw new Error('Invalid y value')
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
 
 	// If y is a complex number, use its real part
-	if(y instanceof ComplexNumber) y = y.real;
+	if (y instanceof ComplexNumber) y = y.real;
 
-	if(typeof x === 'number') return ComplexNumber.from(roundDecimals(x, y));
+	if (typeof x === 'number') return ComplexNumber.from(roundDecimals(x, y));
 	// Round the real and imaginary parts separately
 	const real = roundDecimals(x.real, y);
 	const imaginary = roundDecimals(x.imaginary, y);
 	return ComplexNumber.from(real, imaginary);
 }
 export function floor(x: LikeNumber): ComplexNumber {
-	if(!isLikeNumber(x)) throw new Error('Invalid x value')
-	if(typeof x === 'number') return ComplexNumber.from(Math.floor(x));
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return ComplexNumber.from(Math.floor(x));
 	// Floor the real and imaginary parts separately
 	const real = Math.floor(x.real);
 	const imaginary = Math.floor(x.imaginary);
 	return ComplexNumber.from(real, imaginary);
+}
+export function isInt(x: LikeNumber): boolean {
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (typeof x === 'number') return Number.isInteger(x);
+	return Number.isInteger(x.real) && x.imaginary === 0;
 }
 //#endregion
