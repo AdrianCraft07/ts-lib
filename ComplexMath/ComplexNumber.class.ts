@@ -1,4 +1,4 @@
-import { FOREGROUND } from '../Colors.ts';
+import { FOREGROUND } from '../Colors/.ts';
 import Inspecteable from '../Inspectable.class.ts';
 import { LikeNumber } from "./types.ts";
 const PRECISION = 14;
@@ -45,7 +45,7 @@ function useConsts(val:number):string{
 }
 
 export default class ComplexNumber extends Inspecteable {
-	toConsoleColor = FOREGROUND.YELLOW
+	protected toConsoleColor = FOREGROUND.YELLOW
 	constructor(public real: number = 0, public imaginary: number = 0) {
 		super();
 	}

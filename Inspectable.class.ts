@@ -1,4 +1,4 @@
-import { FOREGROUND, colorize } from "./Colors.ts"
+import { FOREGROUND, colorize } from "./Colors/.ts"
 
 const DenoSymbol = Symbol.for('Deno.customInspect')
 const NodeSymbol = Symbol.for('nodejs.util.inspect.custom')

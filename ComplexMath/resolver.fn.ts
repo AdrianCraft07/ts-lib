@@ -1,10 +1,9 @@
-import { log } from '../ComplexMath.ts';
 import Parser, {
 	ParseComplexResult,
 	ParseComplexResultNumber,
 multiple_power_var,
 } from './Parser.class.ts';
-import { divide, isInt } from './functions.ts';
+import { isInt, log } from './functions.ts';
 import { LikeNumber, scope } from './types.ts';
 
 function hasVariable(parse: ParseComplexResult): boolean {

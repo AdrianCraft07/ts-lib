@@ -5,8 +5,6 @@ type Base255STR = Base10 | `${Exclude<Base10, 0>}${Base10}` | `1${Base10}${Base1
 type RGB_ARG = number | Base255STR;
 type RGB_RED = RGB_ARG | [RGB_ARG, RGB_ARG, RGB_ARG];
 
-
-
 export function ValidateColor(color: string): color is Color {
 	return color.startsWith('\x1b[') && color.endsWith('m');
 }

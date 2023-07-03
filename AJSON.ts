@@ -49,7 +49,7 @@ function _parse(self:any, obj: any): any {
 }
 export function parse(data: string): any{
   const self = JSON.parse(data);
-  return _parse(self);
+  return _parse(self, self);
 }
 
 export default {
