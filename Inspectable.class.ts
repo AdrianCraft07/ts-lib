@@ -1,7 +1,7 @@
-import { FOREGROUND, colorize } from "./Colors/.ts"
+import { FOREGROUND, colorize } from "./Colors/index.ts"
 
-const DenoSymbol = Symbol.for('Deno.customInspect')
-const NodeSymbol = Symbol.for('nodejs.util.inspect.custom')
+export const DenoSymbol = Symbol.for('Deno.customInspect')
+export const NodeSymbol = Symbol.for('nodejs.util.inspect.custom')
 
 export default class Inspecteable {
   protected toConsoleColor = FOREGROUND.MAGENTA

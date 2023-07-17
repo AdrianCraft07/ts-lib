@@ -1,10 +1,10 @@
 import Parser, {
 	ParseComplexResult,
 	ParseComplexResultNumber,
-multiple_power_var,
+	multiple_power_var,
 } from './Parser.class.ts';
-import { isInt, log } from './functions.ts';
-import { LikeNumber, scope } from './types.ts';
+import { divide, isInt, log } from './functions.ts';
+import { LikeNumber, scope } from './types.d.ts';
 
 function hasVariable(parse: ParseComplexResult): boolean {
 	if (parse.type === 'variable') return true;
@@ -31,14 +31,14 @@ function resolveEquation(
 			case '^':
 				// x^2 = 4
 				// x = 4^(1/2)
-				if (left.left.type === 'variable') {
-					if(left.right.type === 'number'){
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
+					if (left.right.type === 'number') {
 						const power = left.right.value;
-						if(isInt(power)) return resolveEquation(
+						return resolveEquation(
 							left.left,
-							multiple_power_var(right, +power),
+							multiple_power_var(right, divide(1,power)),
 							scope
-						)
+						);
 					}
 					return resolveEquation(
 						left.left,
@@ -56,7 +56,7 @@ function resolveEquation(
 						scope
 					);
 				}
-				if (left.right.type === 'variable') {
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
 					const base = left.left;
 					const variable = left.right;
 					if (base.type === 'number') {
@@ -73,10 +73,55 @@ function resolveEquation(
 					}
 				}
 				break;
+			case '√':
+				// 2√x = 4
+				// x = 4^2
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
+					if (left.right.type === 'number') {
+						const power = left.right.value;
+						if (isInt(power))
+							return resolveEquation(
+								left.left,
+								multiple_power_var(right, divide(1, power)),
+								scope
+							);
+					}
+					return resolveEquation(
+						left.left,
+						{
+							type: 'operator',
+							value: '^',
+							left: right,
+							right: {
+								type: 'operator',
+								value: '/',
+								left: { type: 'number', value: 1 },
+								right: left.right,
+							},
+						},
+						scope
+					);
+				}
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
+					const index = left.left;
+					const variable = left.right;
+					return resolveEquation(
+						variable,
+						{
+							type: 'operator',
+							value: '^',
+							left: right,
+							right: index,
+						},
+						scope
+					);
+				}
+				break;
+
 			case '*':
 				// x*2 = 4
 				// x = 4/2
-				if (left.left.type === 'variable') {
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
 					return resolveEquation(
 						left.left,
 						{
@@ -88,7 +133,7 @@ function resolveEquation(
 						scope
 					);
 				}
-				if (left.right.type === 'variable') {
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
 					return resolveEquation(
 						left.right,
 						{
@@ -104,7 +149,7 @@ function resolveEquation(
 			case '/':
 				// x/2 = 4
 				// x = 4*2
-				if (left.left.type === 'variable') {
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
 					return resolveEquation(
 						left.left,
 						{
@@ -116,7 +161,7 @@ function resolveEquation(
 						scope
 					);
 				}
-				if (left.right.type === 'variable') {
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
 					// 2/x = 4
 					// x(2/x) = 4x
 					// 4x = 2
@@ -135,7 +180,7 @@ function resolveEquation(
 			case '+':
 				// x+2 = 4
 				// x = 4-2
-				if (left.left.type === 'variable') {
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
 					return resolveEquation(
 						left.left,
 						{
@@ -147,7 +192,7 @@ function resolveEquation(
 						scope
 					);
 				}
-				if (left.right.type === 'variable') {
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
 					return resolveEquation(
 						left.right,
 						{
@@ -163,7 +208,7 @@ function resolveEquation(
 			case '-':
 				// x-2 = 4
 				// x = 4+2
-				if (left.left.type === 'variable') {
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
 					return resolveEquation(
 						left.left,
 						{
@@ -175,7 +220,7 @@ function resolveEquation(
 						scope
 					);
 				}
-				if (left.right.type === 'variable') {
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
 					return resolveEquation(
 						left.right,
 						{
@@ -187,20 +232,52 @@ function resolveEquation(
 						scope
 					);
 				}
+				break;
+			case '±':
+				// x±2 = 4
+				// x = 4±2
+				if (left.left.type === 'variable' || left.left.type === 'constant') {
+					return resolveEquation(
+						left.left,
+						{
+							type: 'operator',
+							value: '±',
+							left: right,
+							right: left.right,
+						},
+						scope
+					);
+				}
+				if (left.right.type === 'variable' || left.right.type === 'constant') {
+					return resolveEquation(
+						left.right,
+						{
+							type: 'operator',
+							value: '±',
+							left: right,
+							right: left.left,
+						},
+						scope
+					);
+				}
+				break;
 		}
 	}
 	return scope;
 }
 
-type equation = `${string}=${string}`
+type equation = `${string}=${string}`;
 
 /**
  * Resolves an equation
- * 
+ *
  * This function is not finished so it may have errors
  */
 export default function resolve(source: equation, scope?: scope): scope;
-export default function resolve(source: string, scope?: scope): LikeNumber | LikeNumber[];
+export default function resolve(
+	source: string,
+	scope?: scope
+): LikeNumber | LikeNumber[];
 export default function resolve(source: string, scope: scope = {}) {
 	const equations = source.split('=');
 	const simplified = equations.map(equation => {
@@ -208,7 +285,7 @@ export default function resolve(source: string, scope: scope = {}) {
 		const simplify = Parser.simplify(parsed, scope);
 		return simplify;
 	});
-	if (simplified.length === 1) return Parser.evaluate(simplified[0],scope);
+	if (simplified.length === 1) return Parser.evaluate(simplified[0], scope);
 	if (simplified.length === 2) {
 		const [left, right] = simplified;
 		if (hasVariable(left)) return resolveEquation(left, right, scope);

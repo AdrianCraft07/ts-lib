@@ -1,5 +1,8 @@
+import { Radians } from '../ComplexMath/Angle.class.ts';
+import Polar from '../ComplexMath/Polar.class.ts';
 import ComplexNumber from './ComplexNumber.class.ts';
-import { LikeNumber } from './types.ts';
+import { I, PI } from './constants.ts';
+import { LikeNumber, RealNumber } from './types.d.ts';
 
 function roundDecimals(value: number, decimals = 0) {
 	const multiplier = Math.pow(10, decimals);
@@ -12,16 +15,28 @@ export function isLikeNumber(value: unknown): value is LikeNumber {
 }
 
 //#region Arithmetic functions
-export function absolute(x: LikeNumber): ComplexNumber {
+export function absolute(x: LikeNumber): RealNumber {
 	if (!isLikeNumber(x)) throw new Error('Invalid x value');
-	if (typeof x === 'number') return ComplexNumber.from(Math.abs(x));
+	if (typeof x === 'number') return Math.abs(x);
 	// Absolute value is the distance from the origin (0,0)
 	// c^2 = a^2 + b^2
 	// c = sqrt(a^2 + b^2)
 	const c2 = x.real * x.real + x.imaginary * x.imaginary;
 	const c = Math.sqrt(c2);
-	return ComplexNumber.from(c);
+	return c;
 }
+
+/** x±y */
+export function plusMinus(x: LikeNumber, y: LikeNumber): ComplexNumber[] {
+	if (!isLikeNumber(x)) throw new Error('Invalid x value');
+	if (!isLikeNumber(y)) throw new Error('Invalid y value');
+
+	const plus = add(x, y);
+	const minus = subtract(x, y);
+
+	return [plus, minus];
+}
+
 export function add(x: LikeNumber, y: LikeNumber): ComplexNumber {
 	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 	if (!isLikeNumber(y)) throw new Error('Invalid y value');
@@ -103,19 +118,98 @@ export function log(x: LikeNumber) {
 	const imaginary = Math.atan2(x.imaginary, x.real);
 	return ComplexNumber.from(real, imaginary);
 }
-export function power(x: LikeNumber, y: LikeNumber = 2): ComplexNumber {
-	if (!isLikeNumber(x)) throw new Error('Invalid x value');
-	if (!isLikeNumber(y)) throw new Error('Invalid y value');
+export function power(
+	base: LikeNumber,
+	exponent: LikeNumber = 2
+): ComplexNumber {
+	if (!isLikeNumber(base)) throw new Error('Invalid x value');
+	if (!isLikeNumber(exponent)) throw new Error('Invalid y value');
 
-	const logX = log(x);
-	const product = multiply(logX, y);
-	return exp(product);
+	// (a+bi)^(c+di)
+	const polarBase = Polar.from(base);
+	// r = |a+bi|
+	const r = polarBase.magnitude;
+	// theta = arg(a+bi)
+	const theta = Radians.from(polarBase.angle);
+	const [c, d] = ComplexNumber.from(exponent);
+
+	// (r * e^[i*theta])^(c+di)
+	// (r * e^[i*theta])^c * (r * e^[i*theta])^di
+	// r^c * e^[i*theta*c] * r^di * e^[-d*theta]
+	// r^c * e^[i*theta*c] * e^[di*ln(r)] * e^[-d*theta]
+	// r^c * e^[i{c*theta + d*ln(r)} - d*theta]
+	// e^[c*ln(r)] * e^[i{c*theta + d*ln(r)} - d*theta]
+	// e^[c*ln(r) + i{c*theta + d*ln(r)} - d*theta]
+
+	// x = c*ln(r) + i{c*theta + d*ln(r)} - d*theta
+	//     c*ln(r)*i^4 + i{c*theta + d*ln(r)} + d*theta*i^2
+	//     i{ c*ln(r)*i^3 + c*theta + d*ln(r) + d*theta*i }
+	//     i{ -1*c*ln(r)*i + c*theta + d*ln(r) + d*theta*i }
+
+	// y = x/i
+	// 	   -1*c*ln(r)*i + c*theta + d*ln(r) + d*theta*i
+	// 	   c*theta + d*ln(r) + [d*theta - c*ln(r)]i
+
+	// e^x = e^iy = cos(y) + i*sin(y)
+
+	const lnr = Math.log(r);
+
+	const clnr = c * lnr;
+	const ctheta = c * theta.value;
+	const dlnr = d * lnr;
+	const dtheta = d * theta.value;
+
+	const yRe = ctheta + dlnr;
+	const yIm = dtheta - clnr;
+	const y = new ComplexNumber(yRe, yIm);
+
+	const cosY = cos(y);
+	const sinY = sin(y);
+
+	const isinY = multiply(I, sinY);
+
+	return add(cosY, isinY);
 }
 export function square(x: LikeNumber, y: LikeNumber = 2): ComplexNumber {
 	if (!isLikeNumber(x)) throw new Error('Invalid x value');
 
-	return power(x, divide(ComplexNumber.from(1), y));
+	return power(x, divide(1, y));
 }
+square.multidata = function square (
+	base: LikeNumber,
+	index: LikeNumber = 2
+): ComplexNumber[] {
+	if (!isLikeNumber(base)) throw new Error('Invalid x value');
+	const maxData = 100;
+	const data: ComplexNumber[] = [];
+
+	// (a+bi)^(c+di)
+	const polarBase = Polar.from(base);
+	// r = |a+bi|
+	const r = polarBase.magnitude;
+	// theta = arg(a+bi)
+	const θ = Radians.from(polarBase.angle);
+
+	const r_n = power(r, divide(1, index));
+
+	for (let k = 0; k < maxData; k++) {
+		const angle = divide(θ.value + (/* 360° */2 * PI * k), index)
+
+		const cosY = cos(angle);
+		const sinY = sin(angle);
+
+		const isinY = multiply(I, sinY);
+
+		const cos_isin = add(cosY, isinY);
+
+		const value = multiply(r_n, cos_isin);
+		const exists = data.some((v) => equals(v, value));
+		if (exists) break;
+		data.push(value);
+	}
+
+	return data;
+};
 //#endregion
 
 //#region Trigonometric functions

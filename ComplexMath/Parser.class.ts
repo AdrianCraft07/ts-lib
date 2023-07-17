@@ -2,10 +2,9 @@ import {
 	add,
 	divide,
 	equals,
-	isInt,
 	multiply,
 	power,
-	round,
+	square,
 	subtract,
 } from './functions.ts';
 import ComplexNumber from './ComplexNumber.class.ts';
@@ -15,8 +14,10 @@ import tokenize, {
 	TokenOptions,
 	skip,
 } from '../tokenize.fn.ts';
-import { scope, valid_var, LikeNumber } from './types.ts';
+import { scope, valid_var, LikeNumber } from './types.d.ts';
 import { exec } from '../Utils.ts';
+import { EULER, I, PI } from './constants.ts';
+import { multiNumberFunction } from './util.ts';
 
 const enum TokenType {
 	Number,
@@ -64,6 +65,10 @@ export interface ParseComplexResultVariable {
 	value: LikeNumber;
 	name: valid_var;
 }
+export interface ParseComplexResultConstant {
+	type: 'constant';
+	name: 'i' | 'e' | 'π';
+}
 export interface ParseComplexResultNumber {
 	type: 'number';
 	value: LikeNumber;
@@ -81,7 +86,8 @@ export interface ParseComplexResultList {
 
 export type ParseComplexResultValue =
 	| ParseComplexResultNumber
-	| ParseComplexResultVariable;
+	| ParseComplexResultVariable
+	| ParseComplexResultConstant;
 export type ParseComplexResult =
 	| ParseComplexResultValue
 	| ParseComplexResultOperator
@@ -118,14 +124,14 @@ export default class Parser {
 			return { type: 'variable', value: 1, name: variable.value as valid_var };
 		throw new ParseComplexError('Invalid variable');
 	}
-	protected parseConstant(): ParseComplexResultValue {
+	protected parseConstant(): ParseComplexResultConstant {
 		const constant = this.eat();
-		if (constant?.value === 'i')
-			return { type: 'number', value: new ComplexNumber(0, 1) };
-		if (constant?.value === 'e')
-			return { type: 'number', value: new ComplexNumber(Math.E) };
-		if (constant?.value === 'π')
-			return { type: 'number', value: new ComplexNumber(Math.PI) };
+		if (
+			constant?.value === 'i' ||
+			constant?.value === 'e' ||
+			constant?.value === 'π'
+		)
+			return { type: 'constant', name: constant.value };
 		throw new ParseComplexError('Invalid constant');
 	}
 	protected parseValue(): ParseComplexResult {
@@ -252,7 +258,10 @@ export default class Parser {
 	public parse() {
 		return this.parseExpression();
 	}
-	static evaluate(parse: ParseComplexResult, scope: scope): LikeNumber | LikeNumber[] {
+	static evaluate(
+		parse: ParseComplexResult,
+		scope: scope
+	): LikeNumber | LikeNumber[] {
 		if (parse.type === 'number') return ComplexNumber.from(parse.value);
 		if (parse.type === 'operator') {
 			const left = Parser.evaluate(parse.left, scope);
@@ -274,6 +283,12 @@ export default class Parser {
 			if (scope[parse.name])
 				return ComplexNumber.from(scope[parse.name] as LikeNumber);
 			throw new ParseComplexError(`Variable ${parse.name} not found`);
+		}
+		if (parse.type === 'constant') {
+			if (parse.name === 'i') return I;
+			if (parse.name === 'e') return EULER;
+			if (parse.name === 'π') return PI;
+			throw new ParseComplexError(`Constant ${parse.name} not found`);
 		}
 		if (parse.type === 'list') {
 			const results = [];
@@ -592,33 +607,43 @@ export function power_var(
 	return { type: 'operator', value: '^', left, right };
 }
 export function multiple_power_var(
-	right: ParseComplexResultNumber | ParseComplexResultList,
-	root: number
-): ParseComplexResultList {
-	const roots: ComplexNumber[] = [];
+	right:
+		| ParseComplexResultNumber
+		| ParseComplexResultConstant
+		| ParseComplexResultList,
+	exponent: LikeNumber
+): ParseComplexResultNumber | ParseComplexResultList {
 	if (right.type === 'list') {
 		const actualRoots = [];
 		for (const value of right.value) {
-			actualRoots.push(
-				...multiple_power_var({ type: 'number', value }, root).value
-			);
+			const data = multiple_power_var({ type: 'number', value }, exponent);
+			if (data.type === 'list') actualRoots.push(...data.value);
+			else actualRoots.push(data.value);
 		}
+		if (actualRoots.length === 1)
+			return { type: 'number', value: actualRoots[0] };
 		return { type: 'list', value: actualRoots };
 	}
-	let value = right.value;
 
-	if (typeof value === 'number') value = ComplexNumber.from(value);
-	const magnitude = Math.pow(
-		value.real ** 2 + value.imaginary ** 2,
-		1 / (2 * root)
-	);
-	const angle = Math.atan2(value.imaginary, value.real);
-	for (let i = 0; i < root; i++) {
-		const theta = (angle + 2 * Math.PI * i) / root;
-		const realPart = magnitude * Math.cos(theta);
-		const imaginaryPart = magnitude * Math.sin(theta);
-		roots.push(ComplexNumber.from(realPart, imaginaryPart));
+	const index = divide(1, exponent);
+
+	const base = getValue(right);
+	const response = multiNumberFunction(square.multidata)(base, index);
+	if (response[1] === undefined) return { type: 'number', value: response[0] };
+
+	return { type: 'list', value: response };
+}
+
+export function getValue(parse: ParseComplexResult): LikeNumber | LikeNumber[] {
+	if (parse.type === 'number') return parse.value;
+	if (parse.type === 'constant') {
+		if (parse.name === 'i') return I;
+		if (parse.name === 'e') return EULER;
+		if (parse.name === 'π') return PI;
 	}
+	if (parse.type === 'list') return parse.value;
+	if (parse.type === 'variable') return parse.value;
+	if (parse.type === 'operator') return Parser.evaluate(parse, {});
 
-	return { type: 'list', value: roots };
+	throw new ParseComplexError('Invalid parse');
 }

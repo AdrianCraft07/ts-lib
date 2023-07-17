@@ -1,0 +1,1 @@
+export type figure = ([number, number] | [number, number, number])[]

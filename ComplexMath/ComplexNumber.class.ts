@@ -1,9 +1,9 @@
-import { FOREGROUND } from '../Colors/.ts';
+import { FOREGROUND } from '../Colors/index.ts';
 import Inspecteable from '../Inspectable.class.ts';
-import { LikeNumber } from "./types.ts";
+import { LikeNumber } from "./types.d.ts";
 const PRECISION = 14;
 const MIDDLE_PRECISION = Math.round(PRECISION/2);
-const EPSILON = Number(`1e-${PRECISION+1}`);
+const EPSILON = Number(`1e-${PRECISION}`);
 function roundDecimals(value: number, decimals = 0) {
 	if(typeof value !== 'number') throw new Error('Invalid value')
 	if(typeof decimals !== 'number') throw new Error('Invalid decimals')
