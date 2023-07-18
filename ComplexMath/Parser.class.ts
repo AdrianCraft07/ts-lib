@@ -15,7 +15,7 @@ import tokenize, {
 	skip,
 } from '../tokenize.fn.ts';
 import { scope, valid_var, LikeNumber } from './types.d.ts';
-import { exec } from '../Utils.ts';
+import { exec } from '../util.ts';
 import { EULER, I, PI } from './constants.ts';
 import { multiNumberFunction } from './util.ts';
 

@@ -30,3 +30,29 @@ export function exec<A, B, C>(
 	}
 	return fn(a as A, b as B);
 }
+
+export const List = {
+concat<T>(array: T[], compare: (x:T, y:T)=>boolean, ...lists: T[][]): T[] {
+	for (let i = 0; i < lists.length; i++) 
+		List.push(array, compare, ...lists[i]);
+
+	return array;
+},
+push<T>(array: T[], compare: (x:T, y:T)=>boolean, ...lists: T[]): T[]{
+	for (let i = 0; i < lists.length; i++) {
+		const element = lists[i];
+		if(!array.find(x=>compare(x, element))) array.push(element);
+	}
+	return array;
+},
+toConcat<T>(array: T[], compare: (x:T, y:T)=>boolean, ...lists: T[][]): T[] {
+	const result = [...array];
+	List.concat(result, compare, ...lists);
+	return result;
+},
+toPush<T>(array: T[], compare: (x:T, y:T)=>boolean, ...lists: T[]): T[]{
+	const result = [...array];
+	List.push(result, compare, ...lists);
+	return result;
+}
+}

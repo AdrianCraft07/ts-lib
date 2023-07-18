@@ -1,5 +1,5 @@
 import { FONTS, Color } from "./constants.ts";
-import { Base10, makeRange } from '../Utils.ts';
+import { Base10, makeRange } from '../util.ts';
 
 type Base255STR = Base10 | `${Exclude<Base10, 0>}${Base10}` | `1${Base10}${Base10}` | `2${0 | 1 | 2 | 3 | 4}${Base10}` | `25${0 | 1 | 2 | 3 | 4 | 5}`;
 type RGB_ARG = number | Base255STR;

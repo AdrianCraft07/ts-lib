@@ -1,51 +1,33 @@
-import { Cartesian } from "./Cartesian.class.ts";
-import { figure } from "./types.d.ts";
+import { List } from "../util.ts";
+import type { FigureItem, figure } from "./types.d.ts";
 
+function exists(first: FigureItem, second: FigureItem) {
+	return first[0] === second[0] && first[1] === second[1];
+}
 export function makeCircle(r: number) {
 	if(r === 0) return [[0,0]] as figure;
 	const list = [] as figure;
 
 	for (let x = 0; x <= r; x++) {
-		const n = new Cartesian(x, r);
-		const polar = n.toPolar();
-		const coord = Cartesian.from(r, polar.angle);
+		const angle = Math.atan(r/x)
+		const px = r * Math.cos(angle);
+		const py = r * Math.sin(angle);
 
-		const cx = Math.round(coord.x);
-		const cy = Math.round(coord.y);
+		const cx = Math.round(px);
+		const cy = Math.round(py);
 
-		const exists = list.find(([x, y]) => x === cx && y === cy);
-		if (!exists) {
-			list.push([cx, cy]);
-		}
+		List.push(list, exists, [cx, cy]);
 	}
-	for (let y = 0; y <= r; y++) {
-		const n = new Cartesian(r, y);
-		const polar = n.toPolar();
-		const coord = Cartesian.from(r, polar.angle);
+	// 1/8 of the circle
 
-		const cx = Math.round(coord.x);
-		const cy = Math.round(coord.y);
+	const list2_8 = list.map(([x, y]) => [y, x]) as figure;
+	List.concat(list, exists, list2_8)
 
-		const exists = list.find(([x, y]) => x === cx && y === cy);
-		if (!exists) {
-			list.push([cx, cy]);
-		}
-	}
-	const listLength = list.length;
+	const list4_8 = list.map(([x, y]) => [-x, y]) as figure;
+	List.concat(list, exists, list4_8)
 
-	for (let i = 0; i < listLength; i++) {
-		const [x, y] = list[i];
-		const existsX = list.find(([cx, cy]) => cx === -x && cy === y);
-		if (!existsX) list.push([-x, y]);
+	const list8_8 = list.map(([x, y]) => [x, -y]) as figure;
+	List.concat(list, exists, list8_8)
 
-		const existsY = list.find(([cx, cy]) => cx === x && cy === -y);
-		if (!existsY) list.push([x, -y]);
-
-		const existsXY = list.find(([cx, cy]) => cx === -x && cy === -y);
-		if (!existsXY) list.push([-x, -y]);
-	}
-	return list;
+	return list.map(([x, y]) => [y + r, x + r]) as figure;
 }
-makeCircle.noNegative = function (r: number): figure {
-  return makeCircle(r).map(([x, y]) => [y + r, x + r]) as figure;
-};
