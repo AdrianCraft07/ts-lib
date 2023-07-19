@@ -1,6 +1,6 @@
 import { FOREGROUND } from '../Colors/index.ts';
 import Inspecteable from '../Inspectable.class.ts';
-import { LikeNumber } from "./types.d.ts";
+import type { LikeNumber } from "./types.d.ts";
 const PRECISION = 14;
 const MIDDLE_PRECISION = Math.round(PRECISION/2);
 const EPSILON = Number(`1e-${PRECISION}`);

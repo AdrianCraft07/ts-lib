@@ -1,5 +1,5 @@
 import Inspecteable from '../Inspectable.class.ts';
-import { RealNumber } from "./types.d.ts";
+import type { RealNumber } from "./types.d.ts";
 import { PI } from "./constants.ts";
 import { FOREGROUND } from '../Colors/index.ts';
 

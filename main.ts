@@ -7,7 +7,7 @@ const r = 10
 const quadrate = makeQuadrate(r+r).map((a) => {a.push(2);return a});
 const list: string[] = [];
 for (let i = 0; i < r; i++) {
-  const figure = makeCircle.noNegative(i)
+  const figure = makeCircle(i)
   const incenter = [...quadrate, ...figure.map(([x, y]) => [x + r - i, y + r -i])] as typeof figure;
   const figureStr = toString(incenter, '  ', rgb.background(0,255,0), undefined, rgb.background(255,0,0));
   list.push(figureStr);
