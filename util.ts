@@ -56,3 +56,13 @@ toPush<T>(array: T[], compare: (x:T, y:T)=>boolean, ...lists: T[]): T[]{
 	return result;
 }
 }
+export function getRuntime(){
+	// Node.js
+	if((globalThis as any).Buffer) return 'Node.js';
+	// Deno
+	if((globalThis as any).Deno) return 'Deno';
+	// Bun.js
+	if((globalThis as any).Bun) return 'Bun.js';
+	// Browser
+	return 'Browser';
+}

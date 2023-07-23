@@ -61,6 +61,17 @@ rgb.background = function (red: number, green: number, blue: number): Color {
 	return `\x1b[48;2;${r};${g};${b}m`;
 };
 
+export function rgba(red: number, green: number, blue: number, alpha: number): Color {
+	const [r, g, b] = validateRGB(red, green, blue);
+	if(alpha < 0 || alpha > 1) throw new Error('Invalid alpha value')
+	return `\x1b[38;2;${r};${g};${b};${alpha}m`;
+}
+rgba.background = function (red: number, green: number, blue: number, alpha: number): Color {
+	const [r, g, b] = validateRGB(red, green, blue);
+	if(alpha < 0 || alpha > 1) throw new Error('Invalid alpha value')
+	return `\x1b[48;2;${r};${g};${b};${alpha}m`;
+};
+
 export function hexToRGB(hex: string): [number, number, number] {
 	if (!hex.startsWith('#')) throw new Error('Invalid hex color');
 	hex = hex.replace('#', '');
